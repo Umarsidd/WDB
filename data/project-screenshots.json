@@ -1,0 +1,65 @@
+{
+  "dan-erp": {
+    "screenshotDesktop": "/clients/dan-erp-desktop.webp",
+    "screenshotMobile": "/clients/dan-erp-mobile.webp",
+    "screenshotFull": "/clients/dan-erp-full.webp",
+    "canFrame": false,
+    "verified": true
+  },
+  "si-bella-home": {
+    "screenshotDesktop": "/clients/si-bella-home-desktop.webp",
+    "screenshotMobile": "/clients/si-bella-home-mobile.webp",
+    "screenshotFull": "/clients/si-bella-home-full.webp",
+    "canFrame": true,
+    "verified": true
+  },
+  "dazzling-threads": {
+    "screenshotDesktop": "/clients/dazzling-threads-desktop.webp",
+    "screenshotMobile": "/clients/dazzling-threads-mobile.webp",
+    "screenshotFull": "/clients/dazzling-threads-full.webp",
+    "canFrame": true,
+    "verified": true
+  },
+  "fatima-international": {
+    "screenshotDesktop": "/clients/fatima-international-desktop.webp",
+    "screenshotMobile": "/clients/fatima-international-mobile.webp",
+    "screenshotFull": "/clients/fatima-international-full.webp",
+    "canFrame": true,
+    "verified": true
+  },
+  "lulu-galaxy": {
+    "screenshotDesktop": "/clients/lulu-galaxy-desktop.webp",
+    "screenshotMobile": "/clients/lulu-galaxy-mobile.webp",
+    "screenshotFull": "/clients/lulu-galaxy-full.webp",
+    "canFrame": true,
+    "verified": true
+  },
+  "old-is-gold": {
+    "screenshotDesktop": "/clients/old-is-gold-desktop.webp",
+    "screenshotMobile": "/clients/old-is-gold-mobile.webp",
+    "screenshotFull": "/clients/old-is-gold-full.webp",
+    "canFrame": true,
+    "verified": true
+  },
+  "deepak-kumar-srivastava": {
+    "screenshotDesktop": "/clients/deepak-kumar-srivastava-desktop.webp",
+    "screenshotMobile": "/clients/deepak-kumar-srivastava-mobile.webp",
+    "screenshotFull": "/clients/deepak-kumar-srivastava-full.webp",
+    "canFrame": true,
+    "verified": true
+  },
+  "faiz-sheikh-interiors": {
+    "screenshotDesktop": "/clients/faiz-sheikh-interiors-desktop.webp",
+    "screenshotMobile": "/clients/faiz-sheikh-interiors-mobile.webp",
+    "screenshotFull": "/clients/faiz-sheikh-interiors-full.webp",
+    "canFrame": true,
+    "verified": true
+  },
+  "umar-siddiqui": {
+    "screenshotDesktop": "/clients/umar-siddiqui-desktop.webp",
+    "screenshotMobile": "/clients/umar-siddiqui-mobile.webp",
+    "screenshotFull": "/clients/umar-siddiqui-full.webp",
+    "canFrame": true,
+    "verified": true
+  }
+}

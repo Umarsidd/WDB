@@ -1,0 +1,91 @@
+import assert from 'node:assert/strict';
+import { before, after, test } from 'node:test';
+import mongoose from 'mongoose';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import { SMTPServer } from 'smtp-server';
+import { createApp } from '../server/app.js';
+import { Appointment, Lead, User } from '../server/models/index.js';
+import { bootstrapAdmin } from '../server/auth.js';
+import { createMailer } from '../server/mail.js';
+import { bookingBounds, bookableDate, calendarLinks } from '../lib/booking.js';
+import { estimate } from '../lib/cart.js';
+
+let mongo, server, smtp, base;
+const mail=[];
+const origin='https://wdb.example.test';
+const password='test-admin-password';
+const email='admin@example.test';
+const primary={category:'websites',slug:'business-website',quantity:1}, addon={category:'add-ons',slug:'additional-page-design',quantity:2};
+const lead={name:'Test Business',phone:'9500000000',email:'client@example.test',category:'websites',package:'business-website',message:'Requesting a website quote.',consent:true,cart:[primary,addon]};
+const day=(offset)=>new Date(Date.now()+offset*86400000).toISOString().slice(0,10);
+const date=()=>day(3);
+before(async()=>{
+  mongo=await MongoMemoryServer.create({binary:{version:'8.0.17'}});
+  await mongoose.connect(mongo.getUri());
+  await Promise.all([Lead.init(),Appointment.init(),User.init()]);
+  await bootstrapAdmin({email,password});
+  smtp=new SMTPServer({authOptional:true,disabledCommands:['AUTH','STARTTLS'],onData(stream,session,done){
+    const chunks=[];
+    stream.on('data',c=>chunks.push(c));stream.on('end',()=>{mail.push({to:session.envelope.rcptTo.map(x=>x.address),text:Buffer.concat(chunks).toString()});done();});
+  }});
+  await new Promise(resolve=>smtp.listen(0,'127.0.0.1',resolve));
+  const mailer=createMailer({host:'127.0.0.1',port:smtp.server.address().port,requireTLS:false,from:'wdb@example.test',admin:email});
+  const app=createApp({origins:[origin],jwtSecret:'integration-test-signing-key-1234567890',mailer});
+  server=await new Promise(resolve=>{const listener=app.listen(0,'127.0.0.1',()=>resolve(listener));});
+  base='http://127.0.0.1:'+server.address().port+'/api';
+});
+after(async()=>{if(server)await new Promise(resolve=>server.close(resolve));if(smtp)await new Promise(resolve=>smtp.close(resolve));await mongoose.disconnect();await mongo?.stop();});
+const request=(path,method='GET',body,cookie,site=origin)=>fetch(base+path,{method,body:body?JSON.stringify(body):undefined,headers:{Origin:site,'Content-Type':'application/json','X-WDB-Request':'1',...(cookie?{Cookie:cookie}:{})}});
+const appointment=overrides=>({...lead,type:'Free Consultation Call',slot:'morning',date:date(),...overrides});
+
+test('IST window validates calendar dates, and .ics expresses the same slot in UTC',()=>{
+  assert.equal(bookingBounds(new Date('2026-06-11T20:30:00Z')).min,'2026-06-12');
+  assert.equal(bookableDate('2026-02-30',new Date('2026-02-01T00:00:00Z')),false);
+  assert.equal(bookableDate('2026-04-02',new Date('2026-02-01T00:00:00Z')),true);
+  assert.equal(bookableDate('2026-04-03',new Date('2026-02-01T00:00:00Z')),false);
+  const links=calendarLinks({id:'Test',date:'2026-06-12',slot:'morning',service:'Website Development'});
+  assert.match(decodeURIComponent(links.ics),/DTSTART:20260612T043000Z/);
+  assert.equal(new URL(links.google).searchParams.get('ctz'),'Asia/Kolkata');
+});
+test('quote estimates separate billing units and use the server catalogue',()=>{
+  const value=estimate([primary,addon,{category:'social-media',slug:'basic-smm',quantity:50},{category:'paid-promotion',slug:'basic-ads',quantity:2}]);
+  assert.equal(value['one-time'],11999);
+  assert.equal(value.month,999);
+  assert.equal(value.campaign,2999);
+});
+test('enquiry rejects a bot, invalid phone or cross-category package; saves server-priced cart and sends admin email',async()=>{
+  for(const fields of [{website:'filled'},{phone:'+15555555555'},{package:'basic-smm'}])assert.equal((await request('/enquiry','POST',{...lead,...fields})).status,400);
+  assert.equal((await request('/enquiry','POST',{...lead,cart:[{...primary,amount:1}]})).status,201);
+  const saved=await Lead.findOne();
+  assert.equal(saved.phone,'+919500000000');assert.equal(saved.cart[0].amount,9999);
+  assert.ok(mail.some(m=>m.to.includes(email)&&m.text.includes('WDB enquiry')));
+});
+test('concurrent bookings reserve exactly one slot; admin can sign in, reschedule, cancel, search and export',async()=>{
+  const before=await request('/appointments/availability?date='+date());
+  assert.ok((await before.json()).slots.includes('morning'));
+  const results=await Promise.all([request('/appointments','POST',appointment()),request('/appointments','POST',appointment())]);
+  assert.deepEqual(results.map(r=>r.status).sort(),[201,409]);
+  const confirmation=await results.find(r=>r.status===201).json();
+  assert.equal(confirmation.emailed,true);
+  assert.ok(mail.some(m=>m.to.includes(lead.email)&&m.text.includes('Your WDB appointment request')));
+  assert.equal((await (await request('/appointments/availability?date='+date())).json()).slots.includes('morning'),false);
+  assert.equal((await request('/admin/appointments')).status,401);
+  assert.equal((await request('/admin/login','POST',{email,password},null,'https://other.example.test')).status,403);
+  const login=await request('/admin/login','POST',{email,password});
+  assert.equal(login.status,200);
+  const setCookie=login.headers.get('set-cookie');assert.match(setCookie,/HttpOnly; SameSite=Strict/);
+  const session=setCookie.split(';')[0];
+  assert.equal((await request('/admin/session','GET',undefined,session)).status,200);
+  const month=date().slice(0,7);
+  const {rows}=await (await request('/admin/appointments?month='+month+'&search=Test','GET',undefined,session)).json();
+  assert.equal(rows.length,1);
+  const update='/admin/appointments/'+rows[0]._id;
+  assert.equal((await request(update,'PATCH',{status:'confirmed',date:day(4),slot:'evening',notes:'Rescheduled.'},session)).status,200);
+  assert.equal((await request('/appointments','POST',appointment())).status,201);
+  assert.equal((await request(update,'PATCH',{date:date(),slot:'morning'},session)).status,409);
+  assert.equal((await request(update,'PATCH',{status:'cancelled'},session)).status,200);
+  assert.ok((await (await request('/appointments/availability?date='+day(4))).json()).slots.includes('evening'));
+  const exportResponse=await request('/admin/appointments/csv?status=cancelled','GET',undefined,session);
+  assert.equal(exportResponse.status,200);const csv=await exportResponse.text();assert.match(csv,/Rescheduled/);assert.match(csv,/'\+919500000000/);
+  assert.equal((await request('/admin/logout','POST',null,session)).status,204);
+});

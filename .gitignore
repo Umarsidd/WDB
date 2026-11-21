@@ -3,3 +3,9 @@ dist/
 node_modules/
 *.crx
 *.pem
+
+.next/
+.env*
+!.env.example
+playwright-report/
+test-results/

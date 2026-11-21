@@ -1,0 +1,25 @@
+export const founder = {
+  name:'Mohd Umar Siddiqui',
+  title:'Full Stack Developer | Python · React · Node.js · Cloud',
+  location:'Lucknow, India (WDB office: Near Pani Tanki, Balrampur, UP)',
+  photo:'/umar.jpg', resume:'/Umar_Resume.pdf',
+  linkedin:'https://linkedin.com/in/mohd-umar-siddiqui', github:'https://github.com/Umarsidd', portfolio:'https://mohdumarsiddiqui.netlify.app/',
+  bio:'Full Stack Developer with 4+ years of experience designing and delivering scalable, production-grade applications using Python (FastAPI, Flask), Node.js and React. Skilled in REST API design with JWT authentication, PostgreSQL and MongoDB, and containerized deployments using Docker and Kubernetes on GCP and AWS. Hands-on with OpenAI API integration and RAG-based AI workflows.',
+  stats:[[4,'Years Experience'],[10,'REST APIs Built'],[100,'Production Bugs Resolved'],[1000,'Daily Transactions (ERP)'],[500,'Users Served (reporting DB)']],
+  timeline:[
+    { role:'Programmer / Software Developer, DAN (Remote)', period:'Jun 2025 – Present', details:['10+ FastAPI REST APIs with JWT on PostgreSQL (API response time -35%)','Swagger/OpenAPI docs and React integration across 3+ production modules','Flask automation tools cut manual workflow time by 40%','OpenAI API + prototype RAG with vector embeddings','Docker + CI/CD cut deployment time by 30%'] },
+    { role:'System Engineer, Tata Consultancy Services (TCS iON), Lucknow', period:'Jan 2022 – May 2025', details:['unified finance/inventory/sales workflows into one backend (data accuracy +25%)','React.js UI revamp (retention +30%, page load -20%)','optimized ODR SQL database for 500+ users','Scrum/Agile delivery for 3 years','RTL language support for Middle East deployments','100+ production bugs resolved with zero-downtime releases'] },
+  ],
+  education:['MCA, IGNOU, Lucknow (2024 – 2026, pursuing)','BCA, University of Lucknow (2018 – 2021)'],
+  certification:'Google Cloud Certified – Associate Cloud Engineer',
+  languages:['English (Full Professional)','Hindi (Native)','Urdu (Professional Working)','Arabic (Elementary)'],
+  skills:{
+    'Languages':['Python','JavaScript','TypeScript','Java','SQL'],
+    'Backend & APIs':['FastAPI','Flask','Node.js','Express.js','REST','GraphQL (Apollo)','JWT','Microservices','Swagger/OpenAPI'],
+    'Frontend':['React.js','Next.js','HTML5','CSS3','Tailwind CSS','Responsive Design'],
+    'Databases':['PostgreSQL (Prisma)','MongoDB','SQL Server'],
+    'DevOps & Cloud':['Docker','Kubernetes','Jenkins','Git','GitHub Actions','CI/CD','GCP','AWS (S3, Cloudinary)'],
+    'Data & Analytics':['SQL Analytics','PySpark','Power BI','Pandas','NumPy'],
+    'Generative AI':['OpenAI API','Prompt Engineering','RAG','GitHub Copilot','Claude Code','Cursor AI'],
+  },
+};

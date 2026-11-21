@@ -1,93 +1,60 @@
-# Swarm Rebuild
+<!-- coderabbit-ai-generated:v1 -->
 
-A Chrome extension that wipes any web page to a blank canvas and lets a swarm of multiplayer cursors build it back, live: crosshair-drawn boxes, typed text, pen-tool lines, ruler guides and ⌥-drag duplicates, until the page looks just like it did before.
+# WDB – Website Development for Business
 
-![Swarm Rebuild rebuilding a page](media/demo.webp)
+A service catalogue, client showcase, quote cart, enquiry and appointment website. The Next.js frontend renders the public content on the server. The Express API stores leads, quotes and appointments in MongoDB. The Quote Cart is an estimate; there is no online payment.
 
-**[Install from the Chrome Web Store](https://chromewebstore.google.com/detail/swarm-rebuild/diaeaocnhdhbknkbfbnkjikfcgokainm)** · [Full demo video (36s)](media/demo.mp4) · [Demo with sound (60s)](media/demo-with-sound.mp4)
+The original repository's extension remains in [`swarm-rebuild/`](swarm-rebuild/) with its [original documentation](SWARM-EXTENSION.md). The WDB site's cursor animation is a separate implementation.
 
-## Credit
+## Run locally
 
-This is a tribute to **[Swarm](https://califa.github.io/swarm-site/)** by **[Joel Califa](https://joelcalifa.com)** ([@califa](https://github.com/califa), [source](https://github.com/califa/swarm-site)), a website that builds itself as you scroll.
+Use Node.js 22 or newer. Install the same dependency versions locally and on your hosts with `npm ci`.
 
-The motion design is his: the cursor set, the swarm and flocking physics, the build choreography (rects, typing, guides, duplicates), the rulers and the overall look. Large parts of the animation engine here are adapted directly from his site. What this project adds is the part that points it at *any* page: snapshotting a live DOM into a blueprint the swarm can rebuild, plus the extension around it.
+```sh
+cp .env.example .env
+npm ci
+```
 
-Go look at the original. It's better than this.
+1. For persistent local data, put your MongoDB connection string in `.env` as `MONGODB_URI`. For a disposable demo, leave the sample `WDB_LOCAL_DB=1` setting. The first disposable run downloads MongoDB 8.0.17. On Ubuntu 26.04, set `MONGOMS_DISTRO=ubuntu-24.04` to use the supported binary.
+2. To try `/admin`, generate a random `JWT_SECRET` with `openssl rand -hex 32`. Set `ADMIN_EMAIL` and `ADMIN_PASSWORD` (at least 12 characters) before starting the API. Startup creates the initial user if absent; it never overwrites an existing password. Remove the bootstrap password from the environment after provisioning a persistent database.
+3. Run `npm run api` and `npm run dev` in separate terminals. Open `http://localhost:3000`. The frontend proxies `/api/*` to the backend. `GET /api/health` reports database readiness. When SMTP is omitted, the API saves requests but sends no email.
 
-## Install
+Run `npm test` for integration tests against a disposable MongoDB instance and a local SMTP listener. Run `npm run build` and `npm start -- --hostname 0.0.0.0` to serve the production build locally.
 
-**[Add it from the Chrome Web Store](https://chromewebstore.google.com/detail/swarm-rebuild/diaeaocnhdhbknkbfbnkjikfcgokainm)**, then pin it (puzzle icon → pin).
+## Edit content and assets
 
-The store version can lag behind this repo while an update is in review. To run the latest code, load it unpacked:
-
-1. Clone or download this repo.
-2. Open `chrome://extensions` and turn on **Developer mode** (top right).
-3. Click **Load unpacked** and choose the [`swarm-rebuild/`](swarm-rebuild) folder.
-4. Pin it (puzzle icon → pin).
-
-## Use
-
-- Click the toolbar icon or press **Alt+Shift+S** on any page.
-- The page fades out and the cursors orbit the site's favicon, then fan out and start building.
-- **Scroll** and the swarm chases you, with more agents joining the faster you go.
-- **Tour** auto-scrolls at the pace the swarm can keep up with. Good for screen recordings.
-- **1× / 2× / 3×** changes build speed.
-- **Sound** is on by default (🔊 in the toolbar, or press **M**). If the page hasn't been clicked yet, Chrome keeps audio locked and the button says **Tap for sound**; one click anywhere starts it.
-- **Hide** hides the toolbar for clean screen recordings (or press **H**). Move your mouse to the bottom of the screen or press **H** again to show it.
-- When it's done, the cursors flock to your mouse. **Go live** fades back to the real, clickable page; **Replay** builds it again.
-- **Esc**, **✕**, or clicking the icon again exits at any time.
-- **Play automatically** (off by default): right-click the icon → **Options** and choose *on sites I choose* or *on every site*. Chrome asks you to allow access to those sites first, and switching back to *Only when I click* gives that access up.
-
-There's a self-contained test page in [`demo/index.html`](demo/index.html) (an inner-scrolling app shell with floats, forms, cards and media). Opening local files needs **Allow access to file URLs** enabled for the extension.
-
-## How it works
-
-1. **Snapshot.** [`swarm.js`](swarm-rebuild/swarm.js) walks the live DOM, including open shadow roots, and turns it into a blueprint:
-   - boxes with fills, borders, radii, shadows, gradients, masks and backdrop blur → **rects**
-   - text blocks → **text layers**, cloned with their computed styles (fonts, links, inline code, icons, `::before`/`::after`)
-   - single-side borders and `<hr>` → **pen-tool lines**
-   - `<img>`, `<svg>`, `<video>`, `<canvas>`, iframes → **media**. WebGL canvases, playing video and cross-origin iframes are cropped from a screenshot taken at click time while only those elements are visible.
-   - repeated siblings (nav links, cards, list rows, logos) → one **master** plus **duplicates**
-   - shared left edges and baselines → **ruler guides** that text snaps to
-2. **Blank.** A full-viewport layer, isolated from the page's CSS in a shadow root, covers the page with its own background color. A quick hidden scroll pass first triggers lazy images and reveal-on-scroll content.
-3. **Rebuild.** Each cursor runs a small generator script per task. Tasks unlock top-down as you scroll, children wait for their parent box, and duplicates wait for their master:
-   - **rect / media:** crosshair drag with a live `W × H` badge and a gray placeholder, then the real fill fades in (images sweep top to bottom)
-   - **text:** drag a text box, type with an I-beam and a blinking caret; big headings start at 18px and step up
-   - **lines:** pen tool, anchor points, rubber band to the cursor
-   - **guides:** Figma-style rulers slide in, a red guide is dragged out, and text snaps onto it
-   - **duplicates:** select the master, ⌥-drag a copy with red spacing measurements, then retype its text, swap its image or restyle it
-   - **swarm physics:** orbiting, alignment and mouse-avoiding flocking for the intro and the finale
-4. **Sound.** Synthesized live with the Web Audio API (no audio files), mostly clicky, a little musical:
-   - typing is a mechanical keyboard (a sharp click over a short thock, deeper on spaces), and every mouse press is a press-and-release click
-   - guides snap with a crisp click, and growing headings tick up in pitch
-   - boxes, images and duplicates add a sparse, quiet glass-piano note from the E major pentatonic, on an eighth-note grid: big sections play low, small things high, pitch rises left to right, and every sound is panned to its cursor
-   - an airy swell as the page dissolves, a short arpeggio as the swarm fans out, a soft E major chord when the page is done, and a falling sweep for Go live
-
-### Files
-
-| Path | What it is |
+| To edit | File |
 | --- | --- |
-| `swarm-rebuild/manifest.json` | Manifest V3; permissions are `activeTab`, `scripting` and `storage`. Site access is optional and only requested if you turn on automatic play |
-| `swarm-rebuild/background.js` | Toolbar click → media-only screenshot → inject `swarm.js` (or toggle off) |
-| `swarm-rebuild/swarm.js` | Snapshot, renderer and swarm engine (one dependency-free content script) |
-| `swarm-rebuild/options.html`, `options.js` | Automatic play setting |
-| `swarm-rebuild/autoplay.js` | Tiny loader registered only on the sites where automatic play is on |
-| `demo/index.html` | Edge-case test page |
-| `store/` | Chrome Web Store listing copy, screenshots and promo tile |
-| `scripts/package.sh` | Builds the zip to upload to the Web Store |
+| Prices, billing, package CTAs, features and add-ons | `data/packages.js` |
+| Service categories, technology, process and benefits | `data/services.js` |
+| Client cases and pending confirmations | `data/projects.js` |
+| Package FAQs | `data/faqs.js` |
+| Founder profile | `data/founder.js` |
+| Brand, contact, navigation translations, budgets, appointment slots and closures | `data/site.js` |
 
-## Limits
+The appointment horizon uses India Standard Time. Add recurring closures as weekday numbers (Sunday is 0) in `closedWeekdays`, or one-off dates as `YYYY-MM-DD` in `closedDates`. The locale toggle covers navigation; translate the remaining content in `data/` when Hindi copy is ready.
 
-- Chrome doesn't let extensions run on `chrome://` pages, the Web Store or the PDF viewer. The icon shows a red × there.
-- It's a visual rebuild, not a clone. Animations freeze at the moment you click, decorative pseudo-elements are skipped when their position can't be worked out, and canvases, videos and iframes below the first screen become placeholders.
-- Web components are rebuilt as plain styled elements, so none of the page's scripts run inside the swarm's layer.
-- Very long pages are capped at about 4,000 layers / 40,000px.
-- When the swarm starts by itself on a site you chose (rather than on every site), canvases, videos and embedded frames become placeholders: Chrome only allows the screenshot after a click, or with access to all sites.
+### Refresh real client captures
 
-## Publishing
+```sh
+npx playwright install --with-deps chromium
+npm run screenshots
+```
 
-`./scripts/package.sh` writes `dist/swarm-rebuild-<version>.zip` for the [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole). Listing text, permission justifications and assets are in [`store/`](store), and the privacy policy is [`PRIVACY.md`](PRIVACY.md).
+The script captures the public home page at 1440×900 and 390×844, plus a full desktop page. Optimized WebPs go in `public/clients/`; the script writes the corresponding paths and framing capabilities to `data/project-screenshots.json`. A failed capture reports the affected site, exits with a nonzero status for automation and enables the branded fallback for that viewport. Set `SCREENSHOT_FRAME_ORIGIN` to the site's final frontend origin when checking frame policies that name allowed origins. The pipeline doesn't sign in to client sites.
 
-## License
+## Deploy
 
-None yet. The original Swarm site is published without a license and this project adapts parts of it, so please don't reuse this code without checking with [Joel Califa](https://joelcalifa.com) as well.
+1. **API on Render, AWS or Azure:** deploy this repository with Node.js 22+; install via `npm ci --omit=dev` and start via `npm run api`. Set `NODE_ENV=production`, a persistent `MONGODB_URI`, a strong `JWT_SECRET`, initial admin credentials and SMTP settings as backend secrets. Set `CORS_ORIGINS` to the exact HTTPS frontend origin(s), with no trailing slash, and use `/api/health` as the health check. Allow the service's outbound IPs on the MongoDB provider. The API creates the uniqueness indexes before accepting traffic; if importing existing records, resolve any duplicate active dates/slots first.
+2. **Frontend on Vercel:** import the repository root as a Next.js project. Set `API_ORIGIN` to the HTTPS origin of the deployed Express API and `NEXT_PUBLIC_SITE_URL` to the canonical frontend origin. Add Maps and Analytics variables before building. The same-origin proxy keeps the HTTP-only admin session cookie scoped to the frontend.
+3. **After deployment:** check `/api/health` from the frontend, verify admin login over HTTPS, then submit a real test enquiry and booking and confirm both SMTP recipients. Only configure `TRUST_PROXY_HOPS` if the host guarantees that trusted proxies replace incoming forwarding headers. The bundled rate limiter is per instance; for a multi-instance deployment, enforce shared rate limits at the gateway or configure a shared limiter store. Monitor email delivery and back up the production database.
+
+## Owner checklist
+
+- [ ] Replace the founder photo at `public/umar.jpg` and resume at `public/Umar_Resume.pdf`.
+- [ ] Confirm the remaining project stacks and add owner-approved testimonials in `data/projects.js`.
+- [ ] Confirm how DAN ERP Iraqi invoicing applies, its Arabic/RTL readiness, and add approved, redacted dashboard screenshots. The current DAN capture is the public sign-in page.
+- [ ] Confirm the custom scope, if any, for Influencer Collaboration* in `data/projects.js`.
+- [ ] Confirm the Lulu Galaxy and Faiz Interiors canonical domains; their respective deployment links are currently used.
+- [ ] Add the Google Maps **Embed a map** URL as `NEXT_PUBLIC_MAPS_EMBED_URL`. The directions button and QR work without it.
+- [ ] Set `NEXT_PUBLIC_GA_ID`, SMTP credentials and notification addresses; then test production delivery.

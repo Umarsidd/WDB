@@ -1,16 +1,16 @@
 'use client';
 import Link from 'next/link';
 import { useState } from 'react';
-import { ArrowRight, ArrowUpRight, Check, Layers3, Search, SlidersHorizontal, ShoppingBag, X } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, Check, Layers3, Search, SlidersHorizontal, ShoppingBag, X, Monitor, Code2, BarChart3 } from 'lucide-react';
 import { addonPackages, enquiryHref, money, packageHref, priceLabel } from '@/data/packages';
 import { Drawer, Estimate, useSite } from './SiteClient';
 
-export function PackageCard({plan:p,compare,onCompare,index=0}){
+export function PackageCard({plan:p,compare,onCompare,index=0,illustrated=false}){
   const {add}=useSite();
   return <article className={`package-card package-${p.color}`} data-build={index?'duplicate':'box'}>
     <div className="package-top">{p.popular&&<span className="popular">MOST POPULAR</span>}<h3><Link href={packageHref(p)}>{p.name}</Link></h3>{p.bestFor&&<p>{p.bestFor}</p>}</div>
-    <div className="package-inner"><strong className="package-price">{p.amount===null?'Get Quote':<>{money(p.amount)}{p.startsAt&&!p.unit?'+':''} <small>{p.unit||(p.billing==='one-time'?'':'/ '+p.billing)}</small></>}</strong>
-      {p.features.length>0&&<ul className="checks">{p.features.slice(0,5).map(f=><li key={f}><Check size={15}/>{f}</li>)}</ul>}
+    <div className="package-inner">{illustrated&&<div className="plan-illustration" aria-hidden="true"><span><Monitor size={52}/><Code2 size={27}/><BarChart3 size={30}/></span></div>}<strong className="package-price">{p.amount===null?'Get Quote':<>{money(p.amount)}{p.startsAt&&!p.unit?'+':''} <small>{p.unit||(p.billing==='one-time'?'':'/ '+p.billing)}</small></>}</strong>
+      {p.features.length>0&&<ul className="checks">{(illustrated?p.features:p.features.slice(0,5)).map(f=><li key={f}><Check size={15}/>{f}</li>)}</ul>}
       <div className="package-actions"><Link className="btn plan-btn" href={enquiryHref(p)}>{p.cta}<ArrowUpRight size={16}/></Link>
       <div><Link className="inline-link" href={packageHref(p)}>View package <ArrowRight size={13}/></Link><button className="icon-btn" type="button" aria-label={'Add '+p.name+' to Quote Cart'} onClick={()=>add([{category:p.category,slug:p.slug,quantity:1}])}><ShoppingBag size={17}/></button></div>
       {onCompare&&<label className="compare-check"><input type="checkbox" checked={compare} onChange={()=>onCompare(p)}/> Compare</label>}</div>

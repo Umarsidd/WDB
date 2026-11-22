@@ -1,9 +1,9 @@
 import Link from 'next/link';
-import { ArrowUpRight, ArrowRight, PanelsTopLeft, Code2, Globe2, MousePointer2, CircleCheck, PenTool, Smartphone, BarChart3, Sparkles } from 'lucide-react';
+import { ArrowUpRight, ArrowRight, PanelsTopLeft, Code2, Globe2, CircleCheck, PenTool, Smartphone, BarChart3, Sparkles } from 'lucide-react';
 import { site } from '@/data/site';
 import { TechLogo, WhatsAppLink } from './UI';
+import { StudioArt } from './StudioArt';
 
-const cursors=[['Design','purple'],['Code','blue'],['SEO','green'],['Ads','orange'],['Umar','pink']];
 export function HeroGraphic(){
   return <div className="hero-visual" aria-hidden="true" data-build="box">
     <div className="hero-grid"/>
@@ -17,20 +17,22 @@ export function HeroGraphic(){
     </div>
     <div className="visual-chip visual-code"><Code2 size={16}/><span>Development</span></div>
     <div className="visual-chip visual-chart"><BarChart3 size={16}/><span>Marketing</span></div>
-    {cursors.map(([label,color],i)=><div className={`hero-cursor cursor-${i} cursor-${color}`} key={label}><MousePointer2 size={16} fill="currentColor"/><span>{label}</span></div>)}
     <div className="canvas-bottom"><CircleCheck size={13}/> Design · Develop · Launch <span>✦</span></div>
   </div>;
 }
-const chipIcons=[PanelsTopLeft,PenTool,BarChart3];
 export function Hero(){
-  return <section className="hero shell" data-swarm-header>
-    <div className="hero-copy"><div className="eyebrow hero-kicker"><span/>{site.partner}</div>
-      <h1 data-build="text">Complete Digital<br className="hero-break"/> Solutions for <em>Businesses, Shops &amp; Startups</em></h1>
-      <p data-build="text">{site.tagline}</p>
-      <div className="hero-actions"><Link className="btn primary" href="/contact#enquiry">{site.quote}<ArrowUpRight size={18}/></Link><WhatsAppLink/></div>
-      <div className="hero-chips">{site.chips.map((chip,i)=>{const Icon=chipIcons[i];return <span key={chip}><Icon size={15}/>{chip}{i<site.chips.length-1&&<b aria-hidden="true">+</b>}</span>;})}</div>
-    </div><HeroGraphic/>
-  </section>;
+  return <div className="hero-background">
+    <section className="hero shell" data-swarm-header>
+      <div className="hero-copy">
+        <h1 data-build="text">{site.hero}</h1>
+        <p data-build="text">{site.tagline}</p>
+        <div className="hero-identity">{site.partner} <strong>{site.disciplines.join(' | ')}</strong></div>
+        <div className="hero-actions"><Link className="btn primary" href="/book-appointment">Book Appointment<ArrowUpRight size={18}/></Link><WhatsAppLink/></div>
+        <div className="hero-chips">{site.chips.map((chip,i)=><span key={chip}>{chip}{i<site.chips.length-1&&<b>+</b>}</span>)}</div>
+      </div>
+      <StudioArt/>
+    </section>
+  </div>;
 }
 export function HeroTech(){
   return <div className="hero-tech"><div className="shell"><span>BUILT WITH MODERN TECH</span>{[['react','React'],['next','Next.js'],['node','Node.js'],['mongo','MongoDB'],['tailwind','Tailwind CSS']].map(([type,name])=><div key={type}><TechLogo type={type} size={21}/>{name}</div>)}<Link href="/tech-stack" aria-label="View technology stack"><ArrowRight size={20}/></Link></div></div>;

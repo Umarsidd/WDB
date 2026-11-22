@@ -1,6 +1,7 @@
 import '@fontsource-variable/manrope';
 import '@fontsource-variable/space-grotesk';
 import './globals.css';
+import './reference-theme.css';
 import Script from 'next/script';
 import { site } from '@/data/site';
 import { localBusiness, origin, pageMeta } from '@/lib/seo';

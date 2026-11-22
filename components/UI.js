@@ -58,10 +58,10 @@ export function MapCard({compact=false}){
     {!compact&&embed&&/^https:\/\/(www\.)?google\.[a-z.]+\/maps\/embed(?:\?|$)/i.test(embed)&&<iframe title="Map to the WDB office" src={embed} loading="lazy" referrerPolicy="no-referrer-when-downgrade" allowFullScreen/>}
   </section>;
 }
-export function Closing(){return <section className="shell closing-wrap"><div className="closing"><ArrowDownRight className="closing-art" aria-hidden="true"/><div className="eyebrow"><span/> {site.partner}</div><h2>{site.closing}</h2><Link href="/contact#enquiry" className="btn primary">{site.quote}<ArrowUpRight size={17}/></Link></div></section>;}
+export function Closing(){return <section className="shell closing-wrap"><div className="closing"><ArrowDownRight className="closing-art" aria-hidden="true"/><div className="eyebrow"><span/> {site.partner}</div><h2>{site.closing}</h2><Link href="/contact#enquiry" className="btn primary">Contact Us<ArrowUpRight size={17}/></Link></div></section>;}
 export function Footer(){
   return <><div className="glance"><div className="shell"><strong>Our Services At a Glance</strong>{services.map(s=>{const Icon=iconMap[s.icon];return <Link key={s.slug} href={'/services/'+s.slug}><Icon size={16}/>{s.name}</Link>;})}</div></div>
-    <footer className="footer"><div className="shell footer-grid"><div><Brand dark/><p>{site.tagline}</p><p>{site.disciplines.join('  |  ')}</p><Link href="/contact#enquiry" className="inline-link">{site.quote} <ArrowUpRight size={16}/></Link></div>
+    <footer className="footer"><div className="shell footer-grid"><div><Brand dark/><p>{site.tagline}</p><p>{site.disciplines.join('  |  ')}</p><Link href="/contact#enquiry" className="inline-link">Contact Us <ArrowUpRight size={16}/></Link></div>
     <div><h3>Services</h3>{services.map(s=><Link key={s.slug} href={'/services/'+s.slug}>{s.name}</Link>)}</div>
     <div><h3>Quick Links</h3>{[['Clients','clients'],['About','about'],['Tech Stack','tech-stack'],['Process','process'],['Contact','contact'],['Book Appointment','book-appointment']].map(([n,p])=><Link key={p} href={'/'+p}>{n}</Link>)}</div>
     <div><h3>Contact Us Today</h3><a href={'tel:+91'+site.phone}>+91 {site.phone}</a><a href={'mailto:'+site.email}>{site.email}</a><a href={'https://instagram.com/'+site.instagram} target="_blank" rel="noopener noreferrer">{site.instagram}</a><WhatsAppLink className="footer-wa">WhatsApp</WhatsAppLink><MapCard compact/></div>
